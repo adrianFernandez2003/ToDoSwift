@@ -35,15 +35,15 @@ struct SingleRoutineView: View {
             
             ScrollView {
                 VStack(spacing: 20) {
-                    Text("Edit Routine")
+                    Text("Editar rutina")
                         .font(.largeTitle)
                         .bold()
                     
-                    TextField("Name", text: $routineName)
+                    TextField("Nombre", text: $routineName)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                         .padding(.horizontal)
                     
-                    TextField("Description", text: $routineDescription)
+                    TextField("Descripción", text: $routineDescription)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                         .padding(.horizontal)
                     
@@ -58,7 +58,7 @@ struct SingleRoutineView: View {
                                 .frame(width: 30, height: 30)
                                 .foregroundColor(.blue)
                             
-                            Text("Select Icon")
+                            Text("Seleccionar icono")
                                 .foregroundColor(.blue)
                         }
                         .frame(maxWidth: .infinity)
@@ -72,7 +72,7 @@ struct SingleRoutineView: View {
                     Button(action: {
                         showCreateSchedule.toggle()
                     }) {
-                        Text("Manage Schedule")
+                        Text("Gestionar horario")
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
                             .padding()
@@ -91,7 +91,7 @@ struct SingleRoutineView: View {
                             ProgressView()
                                 .progressViewStyle(CircularProgressViewStyle(tint: .white))
                         } else {
-                            Text("Save Changes")
+                            Text("Guardar cambios")
                                 .foregroundColor(.white)
                                 .frame(maxWidth: .infinity)
                                 .padding()
@@ -110,7 +110,7 @@ struct SingleRoutineView: View {
                             ProgressView()
                                 .progressViewStyle(CircularProgressViewStyle(tint: .white))
                         } else {
-                            Text("Delete Routine")
+                            Text("Eliminar rutina")
                                 .foregroundColor(.white)
                                 .frame(maxWidth: .infinity)
                                 .padding()
@@ -126,20 +126,20 @@ struct SingleRoutineView: View {
         }
         .navigationTitle("Editar rutina")
         .navigationBarTitleDisplayMode(.inline)
-        .alert("Success", isPresented: $showSuccessAlert) {
+        .alert("Éxito", isPresented: $showSuccessAlert) {
             Button("OK", role: .cancel) { }
         } message: {
-            Text("Routine updated successfully!")
+            Text("¡Rutina actualizada con éxito!")
         }
-        .alert("Delete Routine", isPresented: $showDeleteAlert) {
-            Button("Cancel", role: .cancel) { }
-            Button("Delete", role: .destructive) {
+        .alert("Eliminar rutina", isPresented: $showDeleteAlert) {
+            Button("Cancelar", role: .cancel) { }
+            Button("Eliminar", role: .destructive) {
                 Task {
                     await deleteRoutineAction()
                 }
             }
         } message: {
-            Text("Are you sure you want to delete this routine?")
+            Text("¿Estás seguro de que deseas eliminar esta rutina?")
         }
         .sheet(isPresented: $showIconPicker) {
             IconPicker(selectedIcon: $selectedIcon)
@@ -166,7 +166,7 @@ struct SingleRoutineView: View {
             if success {
                 showSuccessAlert = true
             } else {
-                errorMessage = "Failed to update routine"
+                errorMessage = "Error al actualizar la rutina"
             }
         } catch {
             errorMessage = error.localizedDescription

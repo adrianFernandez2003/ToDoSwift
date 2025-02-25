@@ -7,40 +7,49 @@ struct SignUpView: View {
     @State private var showAlert = false
     @State private var alertMessage = ""
     @State private var navigateToLogin = false
+    
     var body: some View {
         NavigationStack {
             ZStack {
                 Color("PrimaryColor").ignoresSafeArea()
                 
                 VStack(spacing: 20) {
-                    Text("Sign Up")
+                    Text("Registrarse")
                         .font(.largeTitle)
                         .bold()
                         .padding(.bottom, 30)
                     
-                    TextField("Email", text: $email)
+                    TextField("Correo electrónico", text: $email)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                         .padding(.horizontal)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
                     
-                    SecureField("Password", text: $password)
+                    SecureField("Contraseña", text: $password)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                         .padding(.horizontal)
                     
-                    SecureField("Confirm Password", text: $confirmPassword)
+                    SecureField("Confirmar contraseña", text: $confirmPassword)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                         .padding(.horizontal)
                     
                     Button(action: {
-                        if password == confirmPassword {
-                            navigateToLogin = true
-                        } else {
-                            alertMessage = "Passwords do not match"
-                            showAlert = true
+                        Task {
+                            if password == confirmPassword {
+                                do {
+                                    try await signUp(email: email, password: password)
+                                    navigateToLogin = true
+                                } catch {
+                                    alertMessage = error.localizedDescription
+                                    showAlert = true
+                                }
+                            } else {
+                                alertMessage = "Las contraseñas no coinciden"
+                                showAlert = true
+                            }
                         }
                     }) {
-                        Text("Create Account")
+                        Text("Crear cuenta")
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
                             .padding()
@@ -49,22 +58,21 @@ struct SignUpView: View {
                     }
                     .padding(.horizontal)
                     
-                    NavigationLink(destination: LoginView().navigationBarBackButtonHidden(true)) {
-                        Text("Don't have an account? Sign up")
+                    NavigationLink(destination: LoginView().navigationBarBackButtonHidden(true), isActive: $navigateToLogin) {
+                        Text("¿Ya tienes una cuenta? Inicia sesión")
                             .foregroundColor(.blue)
                     }
                 }
                 .padding()
                 .alert("Error", isPresented: $showAlert) {
-                    Button("OK", role: .cancel) { }
+                    Button("Aceptar", role: .cancel) { }
                 } message: {
                     Text(alertMessage)
                 }
             }
         }
-        }
     }
-
+}
 
 #Preview {
     SignUpView()

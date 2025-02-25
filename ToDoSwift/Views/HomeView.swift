@@ -3,6 +3,7 @@ import SwiftUI
 struct HomeView: View {
     @State private var nextRoutine: RoutineScheduleWithRoutine?
     @State private var routines: [RoutineScheduleWithRoutine] = []
+    @State private var refreshID = UUID() // Para forzar actualizaciones
     
     var body: some View {
         VStack {
@@ -47,6 +48,7 @@ struct HomeView: View {
                         RoutineList()
                         Grid {
                             CardChart()
+                                .id(refreshID) // Forzar actualización cuando cambie refreshID
                         }.padding(.bottom, 10)
                         
                         ForEach(routines, id: \.routines.id) { routine in
@@ -54,13 +56,16 @@ struct HomeView: View {
                                 title: .constant(routine.routines.name),
                                 description: .constant(routine.routines.description),
                                 icon: .constant(routine.routines.icon),
-                                onTap: {},
-                                 routineId: routine.routines.id ?? 0
+                                onTap: {
+                                    Task {
+                                        await loadRoutines()
+                                        refreshID = UUID() // Forzar actualización de CardChart
+                                    }
+                                },
+                                routineId: routine.routines.id ?? 0
                             )
                             .padding(.bottom, 10)
                         }
-                        
-                        
                     }
                     .scrollIndicators(.hidden)
                     .padding()
@@ -95,7 +100,6 @@ struct HomeView: View {
             return diff1 < diff2
         }
     }
-    
 }
 
 #Preview {

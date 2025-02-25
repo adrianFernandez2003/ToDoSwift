@@ -36,7 +36,7 @@ struct IconPicker: View {
 
     var body: some View {
         VStack {
-            Text("Select an Icon")
+            Text("Seleccionar icono")
                 .font(.headline)
                 .padding()
             

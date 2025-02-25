@@ -44,6 +44,7 @@ struct RoutinesView: View {
                                         icon: .constant(routine.icon),
                                         onTap: { selectedRoutine = routine }
                                     )
+                                    .padding(.vertical, 3)
                                     Spacer()
                                 }
                             }

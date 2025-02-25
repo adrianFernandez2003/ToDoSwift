@@ -20,18 +20,18 @@ struct LoginView: View {
                 Color("PrimaryColor").ignoresSafeArea(.all)
 
                 VStack(spacing: 20) {
-                    Text("Login")
+                    Text("Iniciar sesión")
                         .font(.largeTitle)
                         .bold()
                         .padding(.bottom, 30)
 
-                    TextField("Email", text: $email)
+                    TextField("Correo electrónico", text: $email)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                         .padding(.horizontal)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
 
-                    SecureField("Password", text: $password)
+                    SecureField("Contraseña", text: $password)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                         .padding(.horizontal)
 
@@ -40,18 +40,18 @@ struct LoginView: View {
                             do {
                                 let success = try await login(email: email, password: password)
                                 if success {
-                                    navigateToHome = true  // Navigate to ContentView
+                                    navigateToHome = true  // Navegar a ContentView
                                 } else {
-                                    alertMessage = "Invalid credentials. Please try again."
+                                    alertMessage = "Credenciales inválidas. Por favor, inténtalo de nuevo."
                                     showAlert = true
                                 }
                             } catch {
-                                alertMessage = "Login failed: \(error.localizedDescription)"
+                                alertMessage = "Error al iniciar sesión: \(error.localizedDescription)"
                                 showAlert = true
                             }
                         }
                     }) {
-                        Text("Login")
+                        Text("Iniciar sesión")
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
                             .padding()
@@ -61,7 +61,7 @@ struct LoginView: View {
                     .padding(.horizontal)
 
                     NavigationLink(destination: SignUpView().navigationBarBackButtonHidden(true)) {
-                        Text("Don't have an account? Sign up")
+                        Text("¿No tienes cuenta? Regístrate")
                             .foregroundColor(.blue)
                     }
                     NavigationLink("", destination: ContentView().navigationBarBackButtonHidden(true), isActive: $navigateToHome)
