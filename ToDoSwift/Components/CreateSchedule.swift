@@ -15,7 +15,7 @@ struct CreateSchedule: View {
     @State private var showAlert = false
     @State private var errorMessage: String?
     
-    let daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    let daysOfWeek = ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"]
     
     var body: some View {
         VStack(spacing: 20) {
@@ -176,6 +176,9 @@ struct CreateSchedule: View {
                 if !success {
                     throw NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "Failed to update schedule"])
                 }
+                
+                await fetchRoutineSchedules()
+                
             } catch {
                 await MainActor.run {
                     errorMessage = error.localizedDescription
@@ -202,6 +205,9 @@ struct CreateSchedule: View {
                     await MainActor.run {
                         hasExistingSchedule = true
                     }
+                    
+                    await fetchRoutineSchedules()
+                    
                 } else {
                     throw NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "Failed to create schedule"])
                 }

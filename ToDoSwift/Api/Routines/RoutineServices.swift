@@ -24,6 +24,12 @@ struct Routine: Codable, Hashable {
     let id_user: UUID
 }
 
+struct RoutineStreak: Codable, Hashable {
+    let id: Int
+    let streak: Int
+    let points: Int
+}
+
 struct RoutineUpdate: Codable {
     let id: Int?
     let name: String
