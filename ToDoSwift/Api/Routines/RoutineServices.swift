@@ -22,7 +22,19 @@ struct Routine: Codable, Hashable {
     let description: String
     let icon: String
     let id_user: UUID
+    let streak: Int
 }
+
+struct RoutineStreakPoints: Codable, Hashable {
+    let id: Int?
+    let name: String
+    let description: String
+    let icon: String
+    let id_user: UUID
+    let streak: Int
+    let points: Int
+}
+
 
 struct RoutineStreak: Codable, Hashable {
     let id: Int
@@ -135,5 +147,27 @@ func deleteRoutine(id: Int) async throws -> Bool {
     } catch {
         print("Error deleting routine: \(error.localizedDescription)")
         throw NSError(domain: "DeleteError", code: 2, userInfo: [NSLocalizedDescriptionKey: "Failed to delete routine: \(error.localizedDescription)"])
+    }
+}
+
+
+func updateStreak(streak: Int, points: Int, routineId: Int) async throws {
+    guard let user = supabase.auth.currentUser else {
+        throw NSError(domain: "UserNotLoggedIn", code: 1, userInfo: [NSLocalizedDescriptionKey: "User not logged in."])
+    }
+    
+    let updatedRoutine: [RoutineStreak]? = try await supabase
+        .from("routines")
+        .update([
+            "streak": streak,
+            "points": points
+        ])
+        .eq("id", value: routineId)
+        .eq("id_user", value: user.id)
+        .execute()
+        .value
+        
+    guard updatedRoutine != nil else {
+        throw NSError(domain: "UpdateError", code: 2, userInfo: [NSLocalizedDescriptionKey: "Failed to update streak"])
     }
 }

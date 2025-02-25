@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct RoutineList: View {
-    @State private var routines: [Routine] = []
+    @State private var routineSchedules: [RoutineScheduleWithRoutine] = []
     @State private var isLoading = true
     @State private var errorMessage: String?
 
@@ -24,15 +24,20 @@ struct RoutineList: View {
             } else {
                 ScrollView(.horizontal) {
                     HStack {
-                        ForEach(routines, id: \.id) { routine in
-                            Image(systemName: routine.icon)
-                                .frame(width: 75, height: 75)
-                                .foregroundStyle(.white)
-                                .clipShape(Circle())
-                                .overlay(
-                                    Circle().stroke(Color.white, lineWidth: 3)
-                                )
-                                .padding(4)
+                        ForEach(routineSchedules, id: \.routines.id) { schedule in
+                            VStack {
+                                Image(systemName: schedule.routines.icon)
+                                    .frame(width: 75, height: 75)
+                                    .foregroundStyle(.white)
+                                    .clipShape(Circle())
+                                    .overlay(
+                                        Circle().stroke(Color.white, lineWidth: 3)
+                                    )
+                                    .padding(4)
+                                Text(schedule.day_and_time.time)
+                                    .font(.caption)
+                                    .foregroundStyle(.white)
+                            }
                         }
                     }
                 }
@@ -41,14 +46,14 @@ struct RoutineList: View {
         }
         .padding()
         .onAppear {
-            loadRoutines()
+            loadRoutineSchedules()
         }
     }
 
-    private func loadRoutines() {
+    private func loadRoutineSchedules() {
         Task {
             do {
-                routines = try await fetchRoutines()
+                routineSchedules = try await fetchRoutinesAndSchedules()
                 isLoading = false
             } catch {
                 errorMessage = error.localizedDescription

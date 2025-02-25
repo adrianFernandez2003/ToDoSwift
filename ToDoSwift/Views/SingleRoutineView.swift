@@ -191,6 +191,6 @@ struct SingleRoutineView: View {
 
 #Preview {
     SingleRoutineView(
-        routine: Routine(id: 1, name: "Mi Rutina", description: "Una rutina de ejemplo", icon: "house", id_user: UUID())
+        routine: Routine(id: 1, name: "Mi Rutina", description: "Una rutina de ejemplo", icon: "house", id_user: UUID(), streak: 1)
     )
 }

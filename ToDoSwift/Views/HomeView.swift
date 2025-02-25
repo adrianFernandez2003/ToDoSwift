@@ -1,52 +1,66 @@
-//
-//  HomeView.swift
-//  ToDoSwift
-//
-//  Created by José Adrián Fernández Méndez on 21/02/25.
-//
-
 import SwiftUI
 
 struct HomeView: View {
+    @State private var nextRoutine: RoutineScheduleWithRoutine?
+    @State private var routines: [RoutineScheduleWithRoutine] = []
+    
     var body: some View {
         VStack {
             VStack {
-                VStack(alignment: .center){
+                VStack(alignment: .center) {
                     Text("Siguiente actividad")
                         .font(.largeTitle)
-                        .foregroundStyle( Color("TextColor"))
+                        .foregroundStyle(Color("TextColor"))
                         .bold()
-                    Text("Caminar en el parque - 10:30A.M.")
-                        .font(.headline)
-                        .foregroundStyle( Color("TextColor"))
-                    HStack {
-                        Text("¡Llevas 10 días seguidos!")
-                            .foregroundStyle( Color("StreakColor"))
-                        Image(systemName: "flame.fill")
-                            .foregroundStyle(Color("StreakColor"))
-                    }
                     
+                    if let routine = nextRoutine {
+                        Text("\(routine.routines.name) - \(routine.day_and_time.time)")
+                            .font(.headline)
+                            .foregroundStyle(Color("TextColor"))
+                        HStack {
+                            Text("¡Llevas \(routine.routines.streak) días seguidos!")
+                                .foregroundStyle(Color("StreakColor"))
+                            Image(systemName: "flame.fill")
+                                .foregroundStyle(Color("StreakColor"))
+                        }
+                    } else {
+                        Text("Cargando...")
+                            .font(.headline)
+                            .foregroundStyle(Color("TextColor"))
+                    }
                 }
                 .padding(.top)
                 .padding(.bottom)
+                .task {
+                    await loadRoutines()
+                }
             }
+            
             VStack {
                 ZStack {
                     Rectangle()
                         .fill(Color("PrimaryColor"))
                         .cornerRadius(35)
                         .ignoresSafeArea(.all, edges: .bottom)
+                    
                     ScrollView {
                         RoutineList()
                         Grid {
-                            GridRow {
-                                Card(title: .constant("Ultima ubicacion"), description: .constant("Parque la choca"))
-                                Card(title: .constant("Logros y recompensas"), description: .constant("Parque la choca"))
-                            }
+                            CardChart()
+                        }.padding(.bottom, 10)
+                        
+                        ForEach(routines, id: \.routines.id) { routine in
+                            RoutineAvaible(
+                                title: .constant(routine.routines.name),
+                                description: .constant(routine.routines.description),
+                                icon: .constant(routine.routines.icon),
+                                onTap: {},
+                                 routineId: routine.routines.id ?? 0
+                            )
+                            .padding(.bottom, 10)
                         }
-                        .padding(.bottom, 10)
-                        Card(title: .constant("Racha general"), description: .constant("hola"))
-    
+                        
+                        
                     }
                     .scrollIndicators(.hidden)
                     .padding()
@@ -54,8 +68,34 @@ struct HomeView: View {
             }
         }
         .background(Color("SecondaryColor"))
-        
     }
+    
+    private func loadRoutines() async {
+        do {
+            let fetchedRoutines = try await fetchRoutinesAndSchedules()
+            DispatchQueue.main.async {
+                self.routines = fetchedRoutines
+                self.nextRoutine = findNextRoutine(from: fetchedRoutines)
+            }
+        } catch {
+            print("Error fetching routines: \(error)")
+        }
+    }
+    
+    private func findNextRoutine(from routines: [RoutineScheduleWithRoutine]) -> RoutineScheduleWithRoutine? {
+        let currentTime = Date()
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "HH:mm"
+        
+        return routines.min { routine1, routine2 in
+            let time1 = dateFormatter.date(from: routine1.day_and_time.time) ?? Date()
+            let time2 = dateFormatter.date(from: routine2.day_and_time.time) ?? Date()
+            let diff1 = abs(time1.timeIntervalSince(currentTime))
+            let diff2 = abs(time2.timeIntervalSince(currentTime))
+            return diff1 < diff2
+        }
+    }
+    
 }
 
 #Preview {

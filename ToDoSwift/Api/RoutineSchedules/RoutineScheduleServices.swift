@@ -64,10 +64,12 @@ func fetchRoutinesAndSchedules() async throws -> [RoutineScheduleWithRoutine] {
                 name,
                 description,
                 icon,
-                id_user
+                id_user,
+                streak
             )
         """)
         .eq("id_user", value: user.id)
+        .order("day_and_time->time", ascending: true)
         .execute()
         .value
         
