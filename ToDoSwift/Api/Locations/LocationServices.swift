@@ -110,6 +110,31 @@ func createLocation(name: String, latitude: Double, longitude: Double, radius: D
 struct LocationBasic: Codable, Hashable, Identifiable {
     let id: Int
     let name: String
+    let id_user: Int?
+}
+
+func deleteLocation(id: Int) async throws -> Bool {
+    print("Deleting location with ID: \(id)")
+    
+    guard let user = supabase.auth.currentUser else {
+        throw NSError(domain: "UserNotLoggedIn", code: 1, userInfo: [NSLocalizedDescriptionKey: "User not logged in."])
+    }
+    
+    do {
+        let response = try await supabase.database
+            .from("locations")
+            .delete()
+            .eq("id", value: id)
+            .eq("id_user", value: user.id)
+            .execute()
+        
+        print("Location deletion response status: \(response.status)")
+        return response.status == 204
+        
+    } catch {
+        print("Error deleting location: \(error.localizedDescription)")
+        throw NSError(domain: "DeleteError", code: 2, userInfo: [NSLocalizedDescriptionKey: "Failed to delete location: \(error.localizedDescription)"])
+    }
 }
 
 func fetchLocationsBasic() async throws -> [LocationBasic] {
