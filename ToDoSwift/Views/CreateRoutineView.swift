@@ -14,6 +14,9 @@ struct CreateRoutineView: View {
     @State private var showIconPicker = false
     @State private var showSuccessAlert = false
     @State private var errorMessage: String?
+    @State private var selectedLocation: LocationBasic?
+    @State private var locations: [LocationBasic] = []
+    @State private var showLocationPicker = false
     
     var body: some View {
         ZStack {
@@ -54,6 +57,28 @@ struct CreateRoutineView: View {
                     }
                     .padding(.horizontal)
                     
+                    // Location Selection Button
+                    Button(action: {
+                        Task {
+                            do {
+                                locations = try await fetchLocationsBasic()
+                                showLocationPicker = true
+                            } catch {
+                                errorMessage = error.localizedDescription
+                            }
+                        }
+                    }) {
+                        HStack {
+                            Image(systemName: "mappin.circle.fill")
+                            Text(selectedLocation?.name ?? "Seleccionar ubicación")
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.white)
+                        .cornerRadius(10)
+                    }
+                    .padding(.horizontal)
+                    
                     // Botón de enviar
                     Button(action: {
                         createRoutine()
@@ -71,7 +96,9 @@ struct CreateRoutineView: View {
             }
         }
         .alert("¡Rutina Creada!", isPresented: $showSuccessAlert) {
-            Button("OK", role: .cancel) { }
+            Button("OK", role: .cancel) {
+                clearForm()
+            }
         } message: {
             Text("Tu rutina ha sido creada con éxito.")
         }
@@ -86,6 +113,39 @@ struct CreateRoutineView: View {
         .sheet(isPresented: $showIconPicker) {
             IconPicker(selectedIcon: $selectedIcon)
         }
+        .sheet(isPresented: $showLocationPicker) {
+            NavigationView {
+                List(locations) { location in
+                    Button(action: {
+                        selectedLocation = location
+                        showLocationPicker = false
+                    }) {
+                        Text(location.name)
+                            .foregroundColor(selectedLocation?.id == location.id ? .blue : .primary)
+                    }
+                }
+                .navigationTitle("Seleccionar ubicación")
+                .navigationBarItems(trailing: Button("Cerrar") {
+                    showLocationPicker = false
+                })
+            }
+        }
+        .onAppear {
+            Task {
+                do {
+                    locations = try await fetchLocationsBasic()
+                } catch {
+                    errorMessage = error.localizedDescription
+                }
+            }
+        }
+    }
+    
+    private func clearForm() {
+        routineName = ""
+        routineDescription = ""
+        selectedIcon = .house
+        selectedLocation = nil
     }
     
     private func createRoutine() {
@@ -100,7 +160,8 @@ struct CreateRoutineView: View {
                 let success = try await RoutineService.createRoutine(
                     name: routineName,
                     description: routineDescription,
-                    icon: selectedIcon.rawValue
+                    icon: selectedIcon.rawValue,
+                    locationId: selectedLocation?.id
                 )
                 showSuccessAlert = success
             } catch {

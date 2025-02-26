@@ -1,6 +1,6 @@
-
 import SwiftUI
 import MapKit
+
 struct SingleLocationView: View {
     @State private var name: String
     @State private var coordinate: CLLocationCoordinate2D
@@ -18,43 +18,56 @@ struct SingleLocationView: View {
         _coordinate = State(initialValue: CLLocationCoordinate2D(latitude: location.latitude, longitude: location.longitude))
         _radius = State(initialValue: location.radius)
     }
-
+    
     var body: some View {
-        VStack(spacing: 20) {
-            TextField("Nombre del lugar", text: $name)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                .padding()
-
-            Text("Latitud: \(coordinate.latitude)")
-            Text("Longitud: \(coordinate.longitude)")
-            Text("Radio: \(radius) km")
+        ZStack {
+            Color("PrimaryColor").ignoresSafeArea(.all)
             
-            Button("Seleccionar ubicación en el mapa") {
-                isMapPresented = true
+            VStack(spacing: 20) {
+                Text("Editar Ubicación")
+                    .font(.largeTitle)
+                    .bold()
+                    .padding(.top)
+                
+                TextField("Nombre del lugar", text: $name)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .padding(.horizontal)
+                
+                Text("Latitud: \(coordinate.latitude)")
+                Text("Longitud: \(coordinate.longitude)")
+                Text("Radio: \(radius) km")
+                
+                Button("Seleccionar ubicación en el mapa") {
+                    isMapPresented = true
+                }
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(Color.blue)
+                .foregroundColor(.white)
+                .cornerRadius(10)
+                .padding(.horizontal)
+                
+                Button(action: {
+                    Task {
+                        await saveChanges()
+                    }
+                }) {
+                    if isSaving {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                    } else {
+                        Text("Guardar cambios")
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(Color.green)
+                .foregroundColor(.white)
+                .cornerRadius(10)
+                .disabled(isSaving)
+                .padding(.horizontal)
             }
             .padding()
-            .background(Color.blue)
-            .foregroundColor(.white)
-            .cornerRadius(10)
-
-            Button(action: {
-                Task {
-                    await saveChanges()
-                }
-            }) {
-                if isSaving {
-                    ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                } else {
-                    Text("Guardar cambios")
-                }
-            }
-            .padding()
-            .frame(maxWidth: .infinity)
-            .background(Color.green)
-            .foregroundColor(.white)
-            .cornerRadius(10)
-            .disabled(isSaving)
         }
         .navigationTitle("Editar Ubicación")
         .navigationBarTitleDisplayMode(.inline)
@@ -67,7 +80,7 @@ struct SingleLocationView: View {
             Text(errorMessage)
         }
     }
-
+    
     private func saveChanges() async {
         isSaving = true
         do {
@@ -95,6 +108,6 @@ struct SingleLocationView: View {
 
 #Preview {
     SingleLocationView(
-        location: Location(id: 1, latitude: 18.005811, longitude: -92.966590, radius: 10.0, created_at: "2025-02-24", id_routine: 2, name: "Parque la Choca")
+        location: Location(id: 1, latitude: 18.005811, longitude: -92.966590, radius: 10.0, created_at: "2025-02-24", name: "Parque la Choca")
     )
 }

@@ -18,6 +18,9 @@ struct SingleRoutineView: View {
     @State private var showDeleteAlert = false
     @State private var isDeleting = false
     @State private var showCreateSchedule = false
+    @State private var selectedLocation: LocationBasic?
+    @State private var locations: [LocationBasic] = []
+    @State private var showLocationPicker = false
     @Environment(\.dismiss) private var dismiss
     
     let routine: Routine
@@ -60,6 +63,28 @@ struct SingleRoutineView: View {
                             
                             Text("Seleccionar icono")
                                 .foregroundColor(.blue)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.white)
+                        .cornerRadius(10)
+                    }
+                    .padding(.horizontal)
+                    
+                    // Location Selection Button
+                    Button(action: {
+                        Task {
+                            do {
+                                locations = try await fetchLocationsBasic()
+                                showLocationPicker = true
+                            } catch {
+                                errorMessage = error.localizedDescription
+                            }
+                        }
+                    }) {
+                        HStack {
+                            Image(systemName: "mappin.circle.fill")
+                            Text(selectedLocation?.name ?? "Seleccionar ubicación")
                         }
                         .frame(maxWidth: .infinity)
                         .padding()
@@ -144,6 +169,17 @@ struct SingleRoutineView: View {
         .sheet(isPresented: $showIconPicker) {
             IconPicker(selectedIcon: $selectedIcon)
         }
+        .sheet(isPresented: $showLocationPicker) {
+            List(locations) { location in
+                Button(action: {
+                    selectedLocation = location
+                    showLocationPicker = false
+                }) {
+                    Text(location.name)
+                        .foregroundColor(selectedLocation?.id == location.id ? .blue : .primary)
+                }
+            }
+        }
         .sheet(isPresented: $showCreateSchedule) {
             if let id = routine.id {
                 CreateSchedule(routineId: id)
@@ -160,7 +196,8 @@ struct SingleRoutineView: View {
                 id: id,
                 name: routineName,
                 description: routineDescription,
-                icon: selectedIcon.rawValue
+                icon: selectedIcon.rawValue,
+                locationId: selectedLocation?.id
             )
             
             if success {
@@ -191,6 +228,6 @@ struct SingleRoutineView: View {
 
 #Preview {
     SingleRoutineView(
-        routine: Routine(id: 1, name: "Mi Rutina", description: "Una rutina de ejemplo", icon: "house", id_user: UUID(), streak: 1)
+        routine: Routine(id: 1, name: "Mi Rutina", description: "Una rutina de ejemplo", icon: "house", id_user: UUID(), streak: 1, id_location: nil)
     )
 }

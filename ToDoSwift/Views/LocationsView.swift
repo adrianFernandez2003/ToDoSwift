@@ -12,6 +12,7 @@ struct LocationsView: View {
     @State private var isLoading = true
     @State private var errorMessage: String?
     @State private var selectedLocation: Location?  // Ubicación seleccionada
+    @State private var showCreateLocation = false
 
     var body: some View {
         NavigationStack {
@@ -19,11 +20,21 @@ struct LocationsView: View {
                 Color("PrimaryColor").ignoresSafeArea()
                 
                 VStack(spacing: 0) {
-                    Text("Ubicaciones")
-                        .font(.title)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color("PrimaryColor"))
+                    HStack {
+                        Text("Ubicaciones")
+                            .font(.title)
+                            .frame(maxWidth: .infinity)
+                        
+                        Button(action: {
+                            showCreateLocation = true
+                        }) {
+                            Image(systemName: "plus.circle.fill")
+                                .foregroundColor(.white)
+                                .font(.title2)
+                        }
+                    }
+                    .padding()
+                    .background(Color("PrimaryColor"))
                     
                     if isLoading {
                         ProgressView()
@@ -57,6 +68,9 @@ struct LocationsView: View {
             }
             .navigationDestination(item: $selectedLocation) { location in
                 SingleLocationView(location: location) // Abre SingleLocationView
+            }
+            .navigationDestination(isPresented: $showCreateLocation) {
+                CreateLocationView()
             }
         }
     }

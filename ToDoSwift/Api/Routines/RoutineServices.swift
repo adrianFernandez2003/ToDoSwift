@@ -14,6 +14,7 @@ struct RoutineCreate: Encodable {
     let description: String
     let icon: String
     let id_user: UUID
+    let id_location: Int?
 }
 
 struct Routine: Codable, Hashable {
@@ -23,6 +24,7 @@ struct Routine: Codable, Hashable {
     let icon: String
     let id_user: UUID
     let streak: Int
+    let id_location: Int?
 }
 
 struct RoutineStreakPoints: Codable, Hashable {
@@ -33,8 +35,8 @@ struct RoutineStreakPoints: Codable, Hashable {
     let id_user: UUID
     let streak: Int
     let points: Int
+    let id_location: Int?
 }
-
 
 struct RoutineStreak: Codable, Hashable {
     let id: Int
@@ -47,34 +49,26 @@ struct RoutineUpdate: Codable {
     let name: String
     let description: String
     let icon: String
+    let id_location: Int?
 }
 
 class RoutineService {
-    static func createRoutine(name: String, description: String, icon: String) async throws -> Bool {
+    static func createRoutine(name: String, description: String, icon: String, locationId: Int? = nil) async throws -> Bool {
         guard let user = supabase.auth.currentUser else {
             throw NSError(domain: "UserNotLoggedIn", code: 1, userInfo: [NSLocalizedDescriptionKey: "User not logged in."])
         }
         
-        // Create the Routine object instead of using a dictionary
-        let routine = RoutineCreate(name: name, description: description, icon: icon, id_user: user.id)
+        let routine = RoutineCreate(name: name, description: description, icon: icon, id_user: user.id, id_location: locationId)
         
-        // Use the routine object in the insert call
         let response = try await supabase.from("routines").insert(routine).execute()
         
         if response.status == 201 {
-            // Success: Routine created successfully
             return true
         } else {
-            // Failure: Handle the error
             throw NSError(domain: "RoutineCreationFailed", code: 2, userInfo: [NSLocalizedDescriptionKey: "Failed to create routine."])
         }
     }
 }
-
-
-
-
-
 
 func fetchRoutines() async throws -> [Routine] {
     guard let user = supabase.auth.currentUser else {
@@ -94,10 +88,9 @@ func fetchRoutines() async throws -> [Routine] {
     return routines
 }
 
-
-func updateRoutine(id: Int, name: String, description: String, icon: String) async throws -> Bool {
+func updateRoutine(id: Int, name: String, description: String, icon: String, locationId: Int? = nil) async throws -> Bool {
     print("Updating routine with ID: \(id)")
-    print("New values - Name: \(name), Description: \(description), Icon: \(icon)")
+    print("New values - Name: \(name), Description: \(description), Icon: \(icon), Location: \(String(describing: locationId))")
     
     guard let user = supabase.auth.currentUser else {
         throw NSError(domain: "UserNotLoggedIn", code: 1, userInfo: [NSLocalizedDescriptionKey: "User not logged in."])
@@ -107,7 +100,8 @@ func updateRoutine(id: Int, name: String, description: String, icon: String) asy
         id: id,
         name: name,
         description: description,
-        icon: icon
+        icon: icon,
+        id_location: locationId
     )
     
     do {
@@ -149,7 +143,6 @@ func deleteRoutine(id: Int) async throws -> Bool {
         throw NSError(domain: "DeleteError", code: 2, userInfo: [NSLocalizedDescriptionKey: "Failed to delete routine: \(error.localizedDescription)"])
     }
 }
-
 
 func updateStreak(streak: Int, points: Int, routineId: Int) async throws {
     guard let user = supabase.auth.currentUser else {

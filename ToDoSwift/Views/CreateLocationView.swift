@@ -12,54 +12,25 @@ struct CreateLocationView: View {
     @State private var name: String = ""
     @State private var coordinate = CLLocationCoordinate2D(latitude: 0, longitude: 0)
     @State private var radius: Double = 1.0
-    @State private var selectedRoutineId: Int?
     @State private var isMapPresented = false
     @State private var isSaving = false
     @State private var showError = false
     @State private var errorMessage = ""
-    @State private var routines: [Routine]? = nil
-    @State private var isLoadingRoutines = false
     @State private var showSuccess = false
     
     var body: some View {
         Form {
-            Section(header: Text("Location Details")) {
-                TextField("Location Name", text: $name)
+            Section(header: Text("Detalles de la Ubicación")) {
+                TextField("Nombre de la ubicación", text: $name)
                 
-                Button("Select Location on Map") {
+                Button("Seleccionar ubicación en el mapa") {
                     isMapPresented = true
                 }
                 
                 if coordinate.latitude != 0 || coordinate.longitude != 0 {
-                    Text("Latitude: \(coordinate.latitude)")
-                    Text("Longitude: \(coordinate.longitude)")
-                    Text("Radius: \(radius, specifier: "%.1f") km")
-                }
-            }
-            
-            Section(header: Text("Associated Routine")) {
-                if let routines = routines {
-                    List(routines, id: \.id) { routine in
-                        Button(action: {
-                            selectedRoutineId = routine.id
-                        }) {
-                            HStack {
-                                Text(routine.name)
-                                Spacer()
-                                if selectedRoutineId == routine.id {
-                                    Image(systemName: "checkmark")
-                                        .foregroundColor(.blue)
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    if isLoadingRoutines {
-                        ProgressView()
-                    } else {
-                        Text("No routines available")
-                            .foregroundColor(.gray)
-                    }
+                    Text("Latitud: \(coordinate.latitude)")
+                    Text("Longitud: \(coordinate.longitude)")
+                    Text("Radio: \(radius, specifier: "%.1f") km")
                 }
             }
             
@@ -72,13 +43,13 @@ struct CreateLocationView: View {
                     if isSaving {
                         ProgressView()
                     } else {
-                        Text("Create Location")
+                        Text("Crear Ubicación")
                     }
                 }
-                .disabled(name.isEmpty || selectedRoutineId == nil)
+                .disabled(name.isEmpty)
             }
         }
-        .navigationTitle("Create Location")
+        .navigationTitle("Crear Ubicación")
         .sheet(isPresented: $isMapPresented) {
             LocationPicker(coordinate: $coordinate, radius: $radius, locationName: $name)
         }
@@ -87,34 +58,21 @@ struct CreateLocationView: View {
         } message: {
             Text(errorMessage)
         }
-        .alert("Success", isPresented: $showSuccess) {
+        .alert("Éxito", isPresented: $showSuccess) {
             Button("OK", role: .cancel) { }
         } message: {
-            Text("Location created successfully!")
-        }
-        .task {
-            isLoadingRoutines = true
-            do {
-                routines = try await fetchRoutines()
-            } catch {
-                errorMessage = error.localizedDescription
-                showError = true
-            }
-            isLoadingRoutines = false
+            Text("¡Ubicación creada con éxito!")
         }
     }
     
     private func saveLocation() async {
-        guard let routineId = selectedRoutineId else { return }
-        
         isSaving = true
         do {
             let success = try await createLocation(
                 name: name,
                 latitude: coordinate.latitude,
                 longitude: coordinate.longitude,
-                radius: radius,
-                routineId: routineId
+                radius: radius
             )
             
             if success {
