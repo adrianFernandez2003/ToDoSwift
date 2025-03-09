@@ -25,3 +25,24 @@ func login(email: String, password: String) async throws -> Bool {
     print("Successfully logged in user: \(authResponse.user.id)")
     return true
 }
+
+class AuthViewModel: ObservableObject {
+    @Published var isLoggedIn: Bool = false
+
+    init() {
+        checkUserLoginStatus()
+        
+        // Listen for auth changes
+        Task {
+            for await _ in supabase.auth.authStateChanges {
+                await MainActor.run {
+                    self.isLoggedIn = supabase.auth.currentUser != nil
+                }
+            }
+        }
+    }
+    
+    func checkUserLoginStatus() {
+        isLoggedIn = supabase.auth.currentUser != nil
+    }
+}

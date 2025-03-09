@@ -14,6 +14,7 @@ struct ProfileView: View {
     @State private var backgroundSelection: PhotosPickerItem?
     @State private var avatarImage: Image?
     @State private var backgroundImage: Image?
+    @State private var navigateToLogin = false
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
@@ -104,7 +105,7 @@ struct ProfileView: View {
                         ProgressView()
                             .progressViewStyle(CircularProgressViewStyle(tint: .white))
                     } else {
-                        Text("Save Changes")
+                        Text("Guardar cambios")
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
                             .padding()
@@ -117,10 +118,10 @@ struct ProfileView: View {
                 Button(action: {
                     Task {
                         try? await supabase.auth.signOut()
-                        dismiss()
+                        navigateToLogin = true
                     }
                 }) {
-                    Text("Sign Out")
+                    Text("Cerrar sesion")
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .padding()
@@ -159,8 +160,9 @@ struct ProfileView: View {
                 }
             }
         }
-        .navigationDestination(isPresented: .constant(false)) {
+        .navigationDestination(isPresented: $navigateToLogin) {
             LoginView()
+                .navigationBarBackButtonHidden(true)
         }
     }
     

@@ -8,50 +8,17 @@ import SwiftUI
 import Supabase
 
 struct ContentView: View {
-    @State private var selectedTab: Tab = .house
-    @State private var isLoggedIn: Bool = false
-    
-    init() {
-        checkUserLoginStatus()
-        
-        UITabBar.appearance().isHidden = true
-    }
-    
-    func checkUserLoginStatus() {
-        isLoggedIn = supabase.auth.currentUser != nil
-    }
+    @StateObject private var authViewModel = AuthViewModel()
     
     var body: some View {
-        ZStack {
-            if isLoggedIn {
-                VStack {
-                    if selectedTab == .house {
-                        HomeView()
-                    }
-                    if selectedTab == .clipboard {
-                        RoutinesView()
-                    }
-                    if selectedTab == .plus {
-                        CreateRoutineView()
-                    }
-                    if selectedTab == .map {
-                        LocationsView()
-                    }
-                    if selectedTab == .person {
-                        ProfileView()
-                    }
+        NavigationView {
+            ZStack {
+                if authViewModel.isLoggedIn {
+                    SelectViews()
+                } else {
+                    LoginView()
                 }
-                
-                VStack {
-                    Spacer()
-                    CustomTabBar(selectedTab: $selectedTab)
-                }
-            } else {
-                LoginView()
             }
-        }
-        .onAppear {
-            checkUserLoginStatus()
         }
     }
 }

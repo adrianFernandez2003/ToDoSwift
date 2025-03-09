@@ -87,7 +87,5 @@ struct CreateLocationView: View {
 }
 
 #Preview {
-    NavigationView {
-        CreateLocationView()
-    }
+    CreateLocationView()
 }

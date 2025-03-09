@@ -110,7 +110,7 @@ func createLocation(name: String, latitude: Double, longitude: Double, radius: D
 struct LocationBasic: Codable, Hashable, Identifiable {
     let id: Int
     let name: String
-    let id_user: Int?
+    let id_user: UUID?
 }
 
 func deleteLocation(id: Int) async throws -> Bool {

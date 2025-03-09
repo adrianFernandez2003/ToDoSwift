@@ -2,13 +2,16 @@ import SwiftUI
 import MapKit
 
 struct SingleLocationView: View {
+    @Environment(\.dismiss) private var dismiss
     @State private var name: String
     @State private var coordinate: CLLocationCoordinate2D
     @State private var radius: Double
     @State private var isMapPresented = false
     @State private var isSaving = false
+    @State private var isDeleting = false
     @State private var showError = false
     @State private var errorMessage = ""
+    @State private var showDeleteAlert = false
 
     let location: Location
     
@@ -66,6 +69,24 @@ struct SingleLocationView: View {
                 .cornerRadius(10)
                 .disabled(isSaving)
                 .padding(.horizontal)
+                
+                Button(action: {
+                    showDeleteAlert = true
+                }) {
+                    if isDeleting {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                    } else {
+                        Text("Eliminar ubicación")
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                    }
+                }
+                .background(Color.red)
+                .cornerRadius(10)
+                .padding(.horizontal)
+                .disabled(isDeleting)
             }
             .padding()
         }
@@ -78,6 +99,16 @@ struct SingleLocationView: View {
             Button("OK", role: .cancel) { }
         } message: {
             Text(errorMessage)
+        }
+        .alert("Eliminar ubicación", isPresented: $showDeleteAlert) {
+            Button("Cancelar", role: .cancel) { }
+            Button("Eliminar", role: .destructive) {
+                Task {
+                    await deleteLocationAction()
+                }
+            }
+        } message: {
+            Text("¿Estás seguro de que deseas eliminar esta ubicación?")
         }
     }
     
@@ -103,6 +134,19 @@ struct SingleLocationView: View {
             showError = true
         }
         isSaving = false
+    }
+
+    private func deleteLocationAction() async {
+        isDeleting = true
+        do {
+            let success = try await deleteLocation(id: location.id)
+            if success {
+                dismiss()
+            }
+        } catch {
+            dismiss()
+        }
+        isDeleting = false
     }
 }
 
