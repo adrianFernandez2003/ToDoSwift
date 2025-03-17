@@ -1,0 +1,61 @@
+name: Swift CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+
+    runs-on: macos-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    # Caché para mejorar los tiempos de compilación
+    - name: Cache Swift dependencies
+      uses: actions/cache@v3
+      with:
+        path: .build
+        key: ${{ runner.os }}-swiftpm-${{ hashFiles('**/Package.resolved') }}
+        restore-keys: |
+          ${{ runner.os }}-swiftpm-
+
+    # Instalar SwiftLint para análisis de código
+    - name: Install SwiftLint
+      run: brew install swiftlint
+
+    - name: Run SwiftLint
+      run: swiftlint || echo "⚠️ SwiftLint encontró problemas pero no detendrá la build."
+
+    # Compilar el proyecto
+    - name: Build
+      run: swift build -v
+
+    # Ejecutar pruebas con cobertura de código
+    - name: Run tests
+      run: |
+        export LLVM_PROFILE_FILE="coverage.profraw"
+        swift test --enable-code-coverage
+        xcrun llvm-profdata merge -sparse coverage.profraw -o coverage.profdata
+        xcrun llvm-cov report .build/debug/YourProjectPackageTests.xctest/Contents/MacOS/YourProjectPackageTests \
+          -instr-profile=coverage.profdata
+
+    # Si deseas subir el reporte de cobertura a Codecov
+    - name: Upload coverage report to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        files: coverage.profdata
+
+    # Notificar si la build falla en Slack
+    - name: Notify on Failure
+      if: failure()
+      uses: rtCamp/action-slack-notify@v2
+      env:
+        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+        SLACK_MESSAGE: "🚨 La build de Swift falló en GitHub Actions"
+
