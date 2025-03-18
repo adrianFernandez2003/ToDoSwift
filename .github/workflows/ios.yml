@@ -14,6 +14,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Set up Xcode 16.2
+        run: |
+          gem install xcode-install
+          xcversion install "16.2"  # O la versión compatible con tu proyecto
+          sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
+
       - name: Set Default Scheme
         run: |
           scheme_list=$(xcodebuild -list -json | tr -d "\n")
