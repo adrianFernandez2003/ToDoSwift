@@ -15,14 +15,9 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    # Caché para mejorar los tiempos de compilación
-    - name: Cache Swift dependencies
-      uses: actions/cache@v3
-      with:
-        path: .build
-        key: ${{ runner.os }}-swiftpm-${{ hashFiles('**/Package.resolved') }}
-        restore-keys: |
-          ${{ runner.os }}-swiftpm-
+    # Seleccionar la versión de Xcode
+    - name: Select Xcode Version
+      run: sudo xcode-select -switch /Applications/Xcode.app
 
     # Instalar SwiftLint para análisis de código
     - name: Install SwiftLint
@@ -31,26 +26,13 @@ jobs:
     - name: Run SwiftLint
       run: swiftlint || echo "⚠️ SwiftLint encontró problemas pero no detendrá la build."
 
-    # Compilar el proyecto
-    - name: Build
-      run: swift build -v
+    # Compilar el proyecto con Xcode
+    - name: Build with Xcode
+      run: xcodebuild -scheme "ToDoSwift" -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 14' clean build
 
     # Ejecutar pruebas con cobertura de código
     - name: Run tests
-      run: |
-        export LLVM_PROFILE_FILE="coverage.profraw"
-        swift test --enable-code-coverage
-        xcrun llvm-profdata merge -sparse coverage.profraw -o coverage.profdata
-        xcrun llvm-cov report .build/debug/YourProjectPackageTests.xctest/Contents/MacOS/YourProjectPackageTests \
-          -instr-profile=coverage.profdata
-
-
-    # Si deseas subir el reporte de cobertura a Codecov
-    - name: Upload coverage report to Codecov
-      uses: codecov/codecov-action@v3
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        files: coverage.profdata
+      run: xcodebuild -scheme "ToDoSwift" -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 14' test
 
     # Notificar si la build falla en Slack
     - name: Notify on Failure
@@ -59,4 +41,3 @@ jobs:
       env:
         SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
         SLACK_MESSAGE: "🚨 La build de Swift falló en GitHub Actions"
-
