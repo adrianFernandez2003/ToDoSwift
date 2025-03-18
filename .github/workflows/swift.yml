@@ -1,59 +1,63 @@
-name: Swift CI
+name: CI/CD Workflow for Supabase
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main 
   pull_request:
-    branches: [ "main" ]
+    branches:
+      - main  
 
 jobs:
   build:
-    runs-on: macos-13
+    name: Build and Test Project
+    runs-on: macos-latest 
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    # Solución sin xcode-install
-    - name: Setup Xcode
-      run: sudo xcode-select --switch /Applications/Xcode_16.2.app/Contents/Developer
+      - name: Set up Node.js (si usas Node.js para interactuar con Supabase)
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'  
 
-    - name: Check Xcode Version
-      run: xcodebuild -version
+      - name: Install dependencies
+        run: |
+          npm install  # O yarn, si prefieres usarlo
 
-    - name: Install Xcode 16.2 using xcode-install
-      run: |
-        gem install xcode-install
-        xcversion install "16.2" || echo "Xcode 16.2 ya está instalado"
+      - name: Run tests
+        run: |
+          npm test  # O cualquier otro comando para ejecutar tus tests
 
-    
+  deploy:
+    name: Deploy to Supabase
+    runs-on: macos-latest
+    needs: build 
 
-    # Solución con xcode-install (requiere configurar secretos de Apple Developer)
-    # env:
-    #   FASTLANE_USER: ${{ secrets.APPLE_ID }}
-    #   FASTLANE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
-    # - name: Install Xcode 16.2
-    #   run: |
-    #     gem install xcode-install
-    #     xcversion install "16.2"
-    #     sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Build with Xcode
-      run: |
-        xcodebuild -scheme ToDoSwift -sdk iphonesimulator -destination "platform=iOS Simulator,name=iPhone 16" clean build
-    - name: Install SwiftLint
-      run: brew install swiftlint
+      - name: Set up Supabase CLI
+        run: |
+          npm install -g supabase
 
-    - name: Run SwiftLint
-      run: swiftlint || echo "⚠️ SwiftLint encontró problemas pero no detendrá la build."
+      - name: Log in to Supabase
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          supabase login $SUPABASE_SERVICE_ROLE_KEY
 
-    - name: Run tests
-      run: xcodebuild -scheme "ToDoSwift" -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 16' test
+      - name: Deploy Database Migrations to Supabase
+        run: |
 
-    - name: Notify on Failure
-      if: failure()
-      uses: rtCamp/action-slack-notify@v2
-      env:
-        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-        SLACK_MESSAGE: "🚨 La build de Swift falló en GitHub Actions"
+
+      - name: Deploy Functions to Supabase (si tienes funciones)
+        run: |
+          supabase functions deploy --project-id <your_project_id>
+
+      - name: Deploy other configurations (si aplica)
+        run: |
 
