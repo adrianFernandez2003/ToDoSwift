@@ -1,63 +1,65 @@
-name: CI/CD Workflow for Supabase
+name: iOS Build and Deploy with Supabase
 
 on:
   push:
     branches:
-      - main 
+      - main
   pull_request:
     branches:
-      - main  
+      - main
 
 jobs:
   build:
-    name: Build and Test Project
-    runs-on: macos-latest 
+    name: Build and Test iOS App
+    runs-on: macos-latest
 
     steps:
+      # Paso 1: Clonar el repositorio
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Node.js (si usas Node.js para interactuar con Supabase)
-        uses: actions/setup-node@v3
-        with:
-          node-version: '16'  
-
-      - name: Install dependencies
+      # Paso 2: Configurar Xcode
+      - name: Set up Xcode
         run: |
-          npm install  # O yarn, si prefieres usarlo
+          gem install xcode-install
+          xcversion install "16.2"  # O la versión de Xcode que necesitas
+          sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
 
+      # Paso 3: Instalar dependencias de CocoaPods (si las usas)
+      - name: Install CocoaPods dependencies
+        run: |
+          sudo gem install cocoapods
+          pod install
+
+      # Paso 4: Construir la aplicación
+      - name: Build the app
+        run: |
+          xcodebuild clean build -scheme "YourAppScheme" -workspace "YourApp.xcworkspace" -sdk iphonesimulator
+
+      # Paso 5: Ejecutar las pruebas unitarias
       - name: Run tests
         run: |
-          npm test  # O cualquier otro comando para ejecutar tus tests
+          xcodebuild test -scheme "YourAppScheme" -workspace "YourApp.xcworkspace" -destination "platform=iOS Simulator,name=iPhone 14"
 
   deploy:
     name: Deploy to Supabase
     runs-on: macos-latest
-    needs: build 
+    needs: build
 
     steps:
+      # Paso 6: Clonar el repositorio nuevamente para acceder al código de configuración
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Supabase CLI
+      # Paso 7: Autenticación en Supabase
+      - name: Authenticate with Supabase
         run: |
-          npm install -g supabase
+          echo "Supabase API Key: ${{ secrets.SUPABASE_API_KEY }}"
+          echo "Supabase URL: ${{ secrets.SUPABASE_URL }}"
 
-      - name: Log in to Supabase
-        env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      # Paso 8: Desplegar (Esto puede ser el código relacionado a cualquier acción de despliegue)
+      - name: Deploy to Supabase (Ejemplo)
         run: |
-          supabase login $SUPABASE_SERVICE_ROLE_KEY
-
-      - name: Deploy Database Migrations to Supabase
-        run: |
-
-
-      - name: Deploy Functions to Supabase (si tienes funciones)
-        run: |
-          supabase functions deploy --project-id <your_project_id>
-
-      - name: Deploy other configurations (si aplica)
-        run: |
-
+          curl -X POST ${{ secrets.SUPABASE_URL }}/api/v1/deploy \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_API_KEY }}" \
+            -d "deployment_content=$(cat YourDeploymentScript)"
