@@ -23,6 +23,10 @@ jobs:
     - name: Select Xcode 16.2
       run: sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
 
+    - name: Login to Apple Developer Program
+      run: |
+        fastlane spaceauth -u ${{ secrets.APPLE_ID }} -p ${{ secrets.FASTLANE_PASSWORD }}
+
     - name: Build with Xcode
       run: |
         xcodebuild -scheme ToDoSwift -sdk iphonesimulator -destination "platform=iOS Simulator,name=iPhone 16" clean build
@@ -42,4 +46,5 @@ jobs:
       env:
         SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
         SLACK_MESSAGE: "🚨 La build de Swift falló en GitHub Actions"
-        FASTLANE_PASSWORD: ${{ secrets.FASTLANE_PASSWORD }}  # Add this line
+        FASTLANE_PASSWORD: ${{ secrets.FASTLANE_PASSWORD }}
+
