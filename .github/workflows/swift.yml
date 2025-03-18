@@ -15,6 +15,12 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
+    - name: Set up Xcode 16.1
+      run: sudo xcode-select -s /Applications/Xcode_16.1.app/Contents/Developer
+
+    - name: Build
+      run: swift build -v
+
     # Seleccionar la versión de Xcode
     - name: Select Xcode Version
       run: sudo xcode-select -switch /Applications/Xcode.app
