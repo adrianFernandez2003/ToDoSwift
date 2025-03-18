@@ -1,0 +1,66 @@
+name: Build and Deploy iOS Application
+
+on:
+  push:
+    branches:
+      - main  
+  pull_request:
+    branches:
+      - main  
+
+jobs:
+  build:
+    name: Build and Test the iOS App
+    runs-on: macos-latest  
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4 
+
+      - name: Set up Xcode
+        run: |
+          gem install xcode-install
+          xcversion install "16.2"  # Asegúrate de que la versión de Xcode sea compatible con tu proyecto
+          sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
+
+      - name: Install dependencies
+        run: |
+          cd ios  # Cambia a la carpeta de tu proyecto iOS (si es necesario)
+          pod install  # Si usas CocoaPods para gestionar dependencias
+
+      - name: Build the app
+        run: |
+          xcodebuild clean build -workspace YourApp.xcworkspace -scheme YourAppScheme -sdk iphonesimulator -destination "platform=iOS Simulator,name=iPhone 14" CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO
+
+      - name: Run Tests
+        run: |
+          xcodebuild test -workspace YourApp.xcworkspace -scheme YourAppScheme -sdk iphonesimulator -destination "platform=iOS Simulator,name=iPhone 14"
+
+  deploy:
+    name: Deploy to Supabase (si aplicas integración con backend)
+    runs-on: macos-latest
+    needs: build 
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Supabase CLI
+        run: |
+          # Instalar Supabase CLI
+          npm install -g supabase
+
+      - name: Log in to Supabase
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          supabase login $SUPABASE_SERVICE_ROLE_KEY
+
+      - name: Deploy Database Migrations (si tienes migraciones)
+        run: |
+          supabase db push
+
+      - name: Deploy Functions to Supabase (si tienes funciones)
+        run: |
+          supabase functions deploy --project-id <your_project_id>
