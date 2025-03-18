@@ -42,3 +42,4 @@ jobs:
       env:
         SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
         SLACK_MESSAGE: "🚨 La build de Swift falló en GitHub Actions"
+        FASTLANE_PASSWORD: ${{ secrets.FASTLANE_PASSWORD }}  # Add this line
