@@ -14,22 +14,11 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Login to Apple Developer Program
-      run: |
-        echo "$FASTLANE_PASSWORD" | fastlane spaceauth -u ${{ secrets.APPLE_ID }}
-
     - name: Install Xcode 16.2
       run: |
         gem install xcode-install
         xcversion install "16.2"
         sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
-
-    - name: Select Xcode 16.2
-      run: sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
-
-    - name: Login to Apple Developer Program
-      run: |
-        fastlane spaceauth -u ${{ secrets.APPLE_ID }} -p ${{ secrets.FASTLANE_PASSWORD }}
 
     - name: Build with Xcode
       run: |
@@ -50,5 +39,3 @@ jobs:
       env:
         SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
         SLACK_MESSAGE: "🚨 La build de Swift falló en GitHub Actions"
-        FASTLANE_PASSWORD: ${{ secrets.FASTLANE_PASSWORD }}
-
