@@ -14,6 +14,9 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
+    - name: Select Xcode 16.2
+      run: sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
+
     - name: Build with Xcode
       run: |
         xcodebuild -scheme ToDoSwift -sdk iphonesimulator -destination "platform=iOS Simulator,name=iPhone 16" clean build
