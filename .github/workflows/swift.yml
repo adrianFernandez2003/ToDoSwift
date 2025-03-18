@@ -18,6 +18,16 @@ jobs:
     - name: Setup Xcode
       run: sudo xcode-select --switch /Applications/Xcode_16.2.app/Contents/Developer
 
+    - name: Check Xcode Version
+      run: xcodebuild -version
+
+    - name: Install Xcode 16.2 using xcode-install
+      run: |
+        gem install xcode-install
+        xcversion install "16.2" || echo "Xcode 16.2 ya está instalado"
+
+    
+
     # Solución con xcode-install (requiere configurar secretos de Apple Developer)
     # env:
     #   FASTLANE_USER: ${{ secrets.APPLE_ID }}
@@ -46,3 +56,4 @@ jobs:
       env:
         SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
         SLACK_MESSAGE: "🚨 La build de Swift falló en GitHub Actions"
+
