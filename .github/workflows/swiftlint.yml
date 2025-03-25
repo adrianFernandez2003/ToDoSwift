@@ -1,0 +1,28 @@
+name: SwiftLint
+
+on:
+  push:
+    paths:
+      - '**/*.swift'
+      - '.swiftlint.yml'
+  pull_request:
+    paths:
+      - '**/*.swift'
+      - '.swiftlint.yml'
+
+jobs:
+  lint:
+    name: Run SwiftLint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Run SwiftLint via Docker
+        run: |
+          docker run --rm --platform linux/amd64 \
+            -v "${{ github.workspace }}:/src" \
+            ghcr.io/realm/swiftlint swiftlint \
+            --config /src/.swiftlint.yml \
+            --reporter github-actions-logging
